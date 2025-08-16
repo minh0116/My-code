@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Chúc mừng sinh nhật!</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(to top, #ffecd2 0%, #fcb69f 100%);
+      font-family: 'Comic Sans MS', cursive;
+      text-align: center;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      padding-top: 3%;
+    }
+
+    .birthday-text {
+      font-size: 3em;
+      color: #fff;
+      animation: glow 2s infinite ease-in-out;
+    }
+
+    .names {
+      font-size: 2em;
+      color: #fff8dc;
+      margin-top: 10px;
+    }
+
+    .date {
+      font-size: 1.2em;
+      color: #fff;
+      margin-top: 5px;
+    }
+
+    .time, .countdown {
+      font-size: 1em;
+      color: #ffe;
+      margin-top: 10px;
+    }
+
+    .cake {
+      margin-top: 20px;
+    }
+
+    .cake img {
+      width: 200px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #fff;
+    }
+
+    .wish {
+      font-size: 1.5em;
+      margin-top: 20px;
+      color: #fff;
+      animation: fadeIn 4s infinite alternate;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 10px #fff, 0 0 20px #ff69b4; }
+      50% { text-shadow: 0 0 20px #ffff33, 0 0 30px #ff1493; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0.2; }
+      to { opacity: 1; }
+    }
+
+    /* Pháo hoa đơn giản */
+    .fireworks::before, .fireworks::after {
+      content: '';
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background: yellow;
+      border-radius: 50%;
+      animation: explode 2s infinite;
+    }
+
+    @keyframes explode {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(5); opacity: 0; }
+    }
+
+    /* Nút mở quà */
+    #giftBtn {
+      margin-top: 20px;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 8px;
+      background: #ff69b4;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #giftBtn:hover {
+      background: #ff1493;
+    }
+
+    /* Quà */
+    #giftBox {
+      display: none;
+      margin-top: 30px;
+    }
+
+    #giftBox img {
+      width: 250px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #fff;
+      animation: fadeInGift 1s ease-in-out;
+    }
+
+    @keyframes fadeInGift {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="birthday-text">🎉 CHÚC MỪNG SINH NHẬT 🎂</h1>
+    <div class="names">Khôi Trần & Nguyên Trần</div>
+    <div class="date">🎈 Ngày sinh: 18/08/2025</div>
+    <div class="countdown" id="countdown"></div>
+    <div class="time" id="time"></div>
+
+    <div class="cake">
+      <img src="https://media.giphy.com/media/3o6ZsU1rGvsC4KRA5a/giphy.gif" alt="Bánh kem sinh nhật">
+    </div>
+
+    <div class="wish">Chúc hai bạn tuổi mới luôn vui vẻ, hạnh phúc và thành công! 🥳</div>
+
+    <button id="giftBtn">🎁 MỞ QUÀ</button>
+
+    <div id="giftBox">
+      <img src="https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif" alt="Quà tặng">
+      <p style="color: white; font-size: 1.2em; margin-top: 10px;">
+        Đây là món quà bất ngờ dành cho hai bạn ♥
+      </p>
+    </div>
+
+    <canvas id="balloons"></canvas>
+    <div class="fireworks"></div>
+
+    <audio autoplay loop>
+      <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    // Thời gian thực
+    function updateTime() {
+      const now = new Date();
+      const h = now.getHours().toString().padStart(2, '0');
+      const m = now.getMinutes().toString().padStart(2, '0');
+      const s = now.getSeconds().toString().padStart(2, '0');
+      document.getElementById("time").textContent = `⏰ Bây giờ là: ${h}:${m}:${s}`;
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+
+    // Đếm ngược
+    const birthday = new Date("2025-08-18T00:00:00");
+    function updateCountdown() {
+      const now = new Date();
+      const diff = birthday - now;
+      if (diff <= 0) {
+        document.getElementById("countdown").textContent = "🎂 Hôm nay là sinh nhật rồi! 🎉";
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      document.getElementById("countdown").textContent =
+        `⏳ Còn lại: ${days} ngày ${hours} giờ ${mins} phút ${secs} giây`;
+    }
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    // Bóng bay
+    const canvas = document.getElementById("balloons");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let balloons = [];
+    function createBalloon() {
+      return {
+        x: Math.random() * canvas.width,
+        y: canvas.height + 100,
+        radius: 20 + Math.random() * 10,
+        color: `hsl(${Math.random() * 360}, 80%, 60%)`,
+        speed: 1 + Math.random() * 2
+      };
+    }
+
+    function drawBalloon(b) {
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+      ctx.fillStyle = b.color;
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function updateBalloons() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      balloons.forEach((b, i) => {
+        b.y -= b.speed;
+        drawBalloon(b);
+        if (b.y < -50) balloons[i] = createBalloon();
+      });
+      requestAnimationFrame(updateBalloons);
+    }
+
+    for (let i = 0; i < 30; i++) {
+      balloons.push(createBalloon());
+    }
+    updateBalloons();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Bắn confetti định kỳ
+    setInterval(() => {
+      confetti({
+        particleCount: 100,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
+    }, 5000);
+
+    // Nút mở quà 🎁
+    document.getElementById("giftBtn").addEventListener("click", () => {
+      document.getElementById("giftBox").style.display = "block";
+      confetti({
+        particleCount: 150,
+        spread: 120,
+        origin: { y: 0.5 }
+      });
+    });
+  </script>
+</body>
+</html>
+
