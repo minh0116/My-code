@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot AI - Messenger Style</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 90vh;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background-color: #0084ff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            line-height: 1.4;
+            position: relative;
+            opacity: 0;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #0084ff;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: #e4e6eb;
+            color: #050505;
+            border-bottom-left-radius: 5px;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: #e4e6eb;
+            color: #050505;
+            border-bottom-left-radius: 5px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-style: italic;
+            opacity: 0.6;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        #send-button {
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 0 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #send-button:hover {
+            background-color: #006fe0;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="chat-header">
+        Chatbot AI
+    </div>
+    <div class="chat-messages" id="chat-messages">
+        <div class="message bot-message">
+            Xin chào! Tôi là chatbot AI. Hãy hỏi tôi bất kỳ điều gì!
+        </div>
+    </div>
+    <div class="chat-input">
+        <input type="text" id="user-input" placeholder="Nhập tin nhắn của bạn...">
+        <button id="send-button">Gửi</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        const knowledgeBase = {
+            'xin chào': 'Xin chào! Rất vui được gặp bạn!',
+            'bạn là ai': 'Tôi là một chatbot AI đơn giản.',
+            'tạm biệt': 'Tạm biệt bạn! Hẹn gặp lại!',
+            'cảm ơn': 'Không có chi! Rất vui được giúp bạn!',
+            'giờ': 'Bây giờ là ' + new Date().toLocaleTimeString('vi-VN'),
+            'ngày': 'Hôm nay là ' + new Date().toLocaleDateString('vi-VN')
+        };
+
+        function displayMessage(text, sender) {
+            const msg = document.createElement('div');
+            msg.classList.add('message');
+            msg.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+            msg.textContent = text;
+            chatMessages.appendChild(msg);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const typing = document.createElement('div');
+            typing.classList.add('typing-indicator');
+            typing.textContent = 'AI đang nhập...';
+            typing.id = 'typing';
+            chatMessages.appendChild(typing);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        function findResponse(message) {
+            const lowerMsg = message.toLowerCase();
+            for (let key in knowledgeBase) {
+                if (lowerMsg.includes(key)) {
+                    return knowledgeBase[key];
+                }
+            }
+            return 'Tôi chưa hiểu rõ. Bạn có thể hỏi lại rõ hơn không?';
+        }
+
+        function sendMessage() {
+            const msg = userInput.value.trim();
+            if (!msg) return;
+            displayMessage(msg, 'user');
+            userInput.value = '';
+
+            showTypingIndicator();
+
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = findResponse(msg);
+                displayMessage(response, 'bot');
+            }, 500); // 0.5 giây delay
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    });
+</script>
+</body>
+</html> 

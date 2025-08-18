@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!-- saved from url=(0054)file:///C:/Users/TSC/Desktop/HTML%20&%20CSS/index.html -->
+<html lang="vi"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò chơi đoán số</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        
+        .game-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        .instruction {
+            margin-bottom: 20px;
+            color: #7f8c8d;
+        }
+        
+        .input-group {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        input {
+            padding: 10px 15px;
+            font-size: px;
+            border: 2px solid #3498db;
+            border-radius: 5px 0 0 5px;
+            width: 70%;
+            max-width: 200px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .message {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .low {
+            background-color: #f1c40f;
+            color: #34495e;
+        }
+        
+        .high {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .correct {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .attempts {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .restart-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #9b59b6;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .restart-btn:hover {
+            background-color: #8e44ad;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>Trò chơi đoán số</h1>
+        <p class="instruction">Tôi đang nghĩ một số từ 0 đến 1000. Bạn có thể đoán được không?</p>
+        
+        <div class="input-group">
+            <input type="number" id="guess-input" min="0" max="1000" placeholder="Nhập số...">
+            <button id="guess-btn">Đoán</button>
+        </div>
+        
+        <div id="message" class="message high">Số của bạn quá cao!</div>
+        <div id="attempts" class="attempts">Số lần đoán: 1</div>
+        
+        <button id="restart-btn" class="restart-btn">Chơi lại</button>
+    </div>
+
+    <script>
+        // Khởi tạo trò chơi
+        let targetNumber = Math.floor(Math.random() * 1001); // Số mục tiêu từ 0 đến 1000
+        let attempts = 0;
+        const guessInput = document.getElementById('guess-input');
+        const guessBtn = document.getElementById('guess-btn');
+        const messageEl = document.getElementById('message');
+        const attemptsEl = document.getElementById('attempts');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        // Xử lý sự kiện khi nhấn nút đoán
+        guessBtn.addEventListener('click', function() {
+            const guess = parseInt(guessInput.value);
+            
+            // Kiểm tra giá trị nhập vào
+            if (isNaN(guess) || guess < 0 || guess > 1000) {
+                messageEl.textContent = 'Vui lòng nhập số từ 0 đến 1000!';
+                messageEl.className = 'message';
+                return;
+            }
+            
+            attempts++;
+            attemptsEl.textContent = `Số lần đoán: ${attempts}`;
+            
+            // So sánh số đoán với số mục tiêu
+            if (guess < targetNumber) {
+                messageEl.textContent = 'Số của bạn quá thấp!';
+                messageEl.className = 'message low';
+            } else if (guess > targetNumber) {
+                messageEl.textContent = 'Số của bạn quá cao!';
+                messageEl.className = 'message high';
+            } else {
+                messageEl.textContent = `Chúc mừng! Bạn đã đoán đúng số ${targetNumber} sau ${attempts} lần!`;
+                messageEl.className = 'message correct';
+                guessInput.disabled = true;
+                guessBtn.disabled = true;
+                restartBtn.style.display = 'inline-block';
+            }
+            
+            guessInput.value = '';
+            guessInput.focus();
+        });
+        
+        // Xử lý phím Enter
+        guessInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                guessBtn.click();
+            }
+        });
+        
+        // Xử lý nút chơi lại
+        restartBtn.addEventListener('click', function() {
+            targetNumber = Math.floor(Math.random() * 100) + 1;
+            attempts = 0;
+            messageEl.textContent = '';
+            messageEl.className = 'message';
+            attemptsEl.textContent = 'Số lần đoán: 0';
+            guessInput.disabled = false;
+            guessBtn.disabled = false;
+            restartBtn.style.display = 'none';
+            guessInput.focus();
+        });
+    </script>
+
+</body></html>
