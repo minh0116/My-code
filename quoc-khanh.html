@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Kỉ niệm Quốc khánh 2/9</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #001d3d, #000);
+      height: 100vh;
+      width: 100vw;
+    }
+    canvas {
+      display: block;
+    }
+/* LED chữ chạy */
+#ledText {
+  position: fixed;
+  top: 20px;   /* chạy trên màn hình */
+  width: 100%;
+  text-align: center;
+  font-size: 40px;
+  font-weight: bold;
+  color: #ff0000;
+  text-shadow: 0 0 10px #ff0, 0 0 20px #ff0, 0 0 30px #f00;
+  white-space: nowrap;
+  animation: ledMove 15s linear infinite;
+}
+
+#ledText span {
+  display: inline-block;
+  animation: blink 1s infinite alternate;
+}
+
+@keyframes blink {
+  from { opacity: 1; }
+  to { opacity: 0.3; }
+}
+
+/* chữ chạy ngang */
+@keyframes ledMove {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+ <div id="ledText">🇻🇳 Chào mừng ngày quốc khánh 2/9  🇻🇳</div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // ---- ÂM THANH PHÁO HOA ----
+    function playBoom() {
+      const audio = new Audio("https://actions.google.com/sounds/v1/fireworks/fireworks_burst.ogg");
+      audio.volume = 0.3;
+      audio.play();
+    }
+
+    // ---- CLASS LÁ CỜ ----
+    class Flag {
+      constructor(x, y, size, speed) {
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        this.speed = speed;
+        this.offset = Math.random() * 100;
+      }
+      draw(ctx, t) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        const wave = Math.sin((t + this.offset) / 200) * 5;
+
+        ctx.fillStyle = 'red';
+        ctx.fillRect(0, 0, this.size * 1.6, this.size);
+
+        ctx.fillStyle = 'yellow';
+        ctx.beginPath();
+        const cx = this.size * 0.8 + wave;
+        const cy = this.size / 2;
+        const spikes = 5;
+        const outerRadius = this.size * 0.25;
+        const innerRadius = this.size * 0.1;
+        let rot = Math.PI / 2 * 3;
+        let step = Math.PI / spikes;
+        ctx.moveTo(cx, cy - outerRadius);
+        for (let i = 0; i < spikes; i++) {
+          let x = cx + Math.cos(rot) * outerRadius;
+          let y = cy + Math.sin(rot) * outerRadius;
+          ctx.lineTo(x, y);
+          rot += step;
+          x = cx + Math.cos(rot) * innerRadius;
+          y = cy + Math.sin(rot) * innerRadius;
+          ctx.lineTo(x, y);
+          rot += step;
+        }
+        ctx.lineTo(cx, cy - outerRadius);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+      update() {
+        this.y += this.speed;
+        this.x += Math.sin(Date.now() / 500 + this.offset) * 0.3;
+      }
+    }
+
+    let flags = [];
+    function addFlag() {
+      const size = 25 + Math.random() * 20;
+      const x = Math.random() * canvas.width;
+      const y = -size;
+      const speed = 0.5 + Math.random() * 1.5;
+      flags.push(new Flag(x, y, size, speed));
+    }
+
+    // ---- CLASS PHÁO HOA ----
+    class Particle {
+      constructor(x, y, color, speed, angle) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.speed = speed;
+        this.angle = angle;
+        this.alpha = 1;
+        this.decay = 0.015 + Math.random() * 0.02;
+      }
+      update() {
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+        this.speed *= 0.95;
+        this.alpha -= this.decay;
+      }
+      draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    let fireworks = [];
+    function createFirework(x, y) {
+      const colors = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#ff00ff', '#ffffff'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const count = 60 + Math.random() * 60;
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count;
+        const speed = 2 + Math.random() * 4;
+        fireworks.push(new Particle(x, y, color, speed, angle));
+      }
+      playBoom();
+    }
+
+    // click chuột bắn pháo hoa
+    canvas.addEventListener("click", (e) => {
+      createFirework(e.clientX, e.clientY);
+    });
+
+    // ---- ANIMATE ----
+    function animate() {
+      ctx.fillStyle = "rgba(0,0,0,0.2)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const time = Date.now();
+
+      flags.forEach((flag, i) => {
+        flag.update();
+        flag.draw(ctx, time);
+        if (flag.y > canvas.height + 50) {
+          flags.splice(i, 1);
+        }
+      });
+      if (Math.random() < 0.08) addFlag();
+
+      fireworks.forEach((p, i) => {
+        p.update();
+        p.draw(ctx);
+        if (p.alpha <= 0) fireworks.splice(i, 1);
+      });
+
+      // tăng tần suất pháo hoa tự động
+      if (Math.random() < 0.06) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height * 0.5;
+        createFirework(x, y);
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    window.addEventListener("resize", () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
